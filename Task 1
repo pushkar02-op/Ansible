@@ -1,0 +1,51 @@
+- hosts: web
+  gather_facts: false
+  tasks:
+          - name: conf yum for Docker
+            yum_repository:
+                 name: Dockerrepo
+                 baseurl: https://download.docker.com/linux/centos/7/x86_64/stable/
+                 file: /etc/yum.repos.d/docker
+                 description: my docker Rep0
+                 enabled: true
+                 gpgcheck: no
+          - name: Install Docker Software
+            command: "yum install docker-ce -y --nobest"
+          - name: start docker Services
+            service:
+              name: Docker
+              state: started
+              enabled: yes
+          - name: Install python3 Software
+            package:
+              name: Python
+              state: present
+          - name: install docker Python library
+            pip:
+                name: docker-py
+
+          - name: Creating A WorkSpace on MN
+            file:
+              path: /root/AnsibleTask1
+              state: directory
+
+          - name: Copying Content Into Managed Node
+            copy:
+                src: "test.html"
+                dest: "/root/AnsibleTask1"
+            ignore_errors: yes
+          - name: pull image for docker
+            docker_image:
+              name: httpd
+              source: pull
+          - name: run container
+            docker_container:
+                name: myos1
+                image: httpd
+                state: started
+                detach: true
+                interactive: true
+                ports:
+                        - "81:80"
+                volumes:
+                        - /root/AnsibleTask1/:/usr/local/apache2/htdocs/    
